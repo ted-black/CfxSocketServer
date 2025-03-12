@@ -1,0 +1,10 @@
+openssl req -x509 -nodes -new -sha256 -days 3650 -newkey rsa:2048 -keyout tedblack-CA.key -out tedblack-CA.pem -subj "/C=US/CN=tedblack-Root-CA"
+
+openssl x509 -outform pem -in tedblack-CA.pem -out tedblack-CA.crt
+
+openssl req -new -nodes -newkey rsa:2048 -keyout tedblack-app.key -out tedblack-app.pem -subj "/C=US/ST=GA/L=Roswell/O=Example-Certificates/CN=tedblack"
+
+openssl x509 -req -sha256 -days 1024 -in tedblack-app.pem -CA tedblack-CA.pem -CAkey tedblack-CA.key -CAcreateserial -extfile v3.ext -out tedblack-app.crt
+
+openssl pkcs12 -export -out tedblack-app.pfx -inkey tedblack-app.key -in tedblack-app.crt -certfile tedblack-CA.crt
+

@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "CfxSocketServer": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "WebSocketKey": "tedblack",
+        "WebSocketCert": "C:\\Development\\CfxSocketServer\\Cert\\tedblack-app.pfx"
+      }
+    }
+  }
+}
