@@ -49,4 +49,11 @@ public interface IWebSocketChannel<T> where T : IChannelWriter
     /// <param name="bytes"></param>
     /// <returns></returns>
     Task WriteBinaryAllAsync(List<byte> bytes);
+
+    /// <summary>
+    /// Compare to
+    /// </summary>
+    /// <param name="otherChannel"></param>
+    /// <returns></returns>
+    int CompareTo(IWebSocketChannel<T> otherChannel);
 }

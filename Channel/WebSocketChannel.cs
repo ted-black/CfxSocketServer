@@ -13,7 +13,7 @@ namespace CfxSocketServer.Channel;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <param name="webSocketSessions"></param>
-public class WebSocketChannel<T>(ConcurrentDictionary<Guid, T> webSocketSessions) : IWebSocketChannel<T> where T : IChannelWriter, IComparable<WebSocketChannel<T>>
+public class WebSocketChannel<T>(ConcurrentDictionary<Guid, T> webSocketSessions) : IWebSocketChannel<T> where T : IChannelWriter, IComparable<IWebSocketChannel<T>>
 {
     /// <summary>
     /// The server websocket sessions

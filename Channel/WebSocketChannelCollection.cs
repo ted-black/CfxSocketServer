@@ -10,7 +10,34 @@ namespace CfxSocketServer.Channel;
 /// <summary>
 /// Manage the collection of webSocket channels
 /// </summary>
-public class WebSocketChannelCollection
+public class WebSocketChannelCollection : IWebSocketChannelCollection
 {
     private readonly ConcurrentDictionary<Guid, IWebSocketChannel<IChannelWriter>> channels = [];
+
+    /// <inheritdoc cref="IWebSocketChannelCollection.Add(IWebSocketChannel{IChannelWriter})"/>
+    public bool Add(IWebSocketChannel<IChannelWriter> channelToAdd)
+    {
+        foreach (KeyValuePair<Guid, IWebSocketChannel<IChannelWriter>> channel in channels)
+        {
+            if (channel.Value.CompareTo(channelToAdd) == 0)
+            {
+                return false;
+            }
+        }
+
+        return channels.TryAdd(channelToAdd.Id, channelToAdd);
+    }
+
+    /// <inheritdoc cref="IWebSocketChannelCollection.Get(Guid)"/>
+    public IWebSocketChannel<IChannelWriter> Get(Guid id)
+    {
+        channels.TryGetValue(id, out IWebSocketChannel<IChannelWriter> channel);
+        return channel;
+    }
+
+    /// <inheritdoc cref="IWebSocketChannelCollection.Remove(IWebSocketChannel{IChannelWriter})"/>
+    public void Remove(IWebSocketChannel<IChannelWriter> channel)
+    {
+        channels.TryRemove(channel.Id, out _);
+    }
 }

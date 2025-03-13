@@ -162,22 +162,22 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
                     switch (transmission.OpCode)
                     {
                         case OpCode.ConnClosed:
-                            // Create the on close event and raise it 
+                            // Create the on close event and raise it and kill the listening loop i.e. the client has closed the conn
                             //
-                            OnWebSocketSessionCloseEventArgs onSessionCloseEventArgs = new() { Transmission = transmission, WebSocketSessionId = this.Id };
+                            OnWebSocketSessionCloseEventArgs onSessionCloseEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id };
                             OnSessionClose(onSessionCloseEventArgs);
                             isListen = false;
                             break;
                         case OpCode.Pong:
                             // Create the on ping event and raise it
                             //
-                            OnWebSocketSessionPingEventArgs onPingEventArgs = new() { Transmission = transmission, WebSocketSessionId = this.Id };
+                            OnWebSocketSessionPingEventArgs onPingEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id };
                             OnPingReceived(onPingEventArgs);
                             break;
                         default:
                             // This transmission is a message, so we raise the on message event. 
                             //
-                            OnTransmissionArgs onTransmissionEventArgs = new() { Transmission = transmission, WebSocketSessionId = this.Id };
+                            OnTransmissionArgs onTransmissionEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id };
                             OnMessageReceived(onTransmissionEventArgs);
                             break;
                     }
