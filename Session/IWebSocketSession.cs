@@ -1,17 +1,13 @@
-﻿using System.Net.Security;
+﻿using CfxSocketServer.Channel;
+using System.Net.Security;
 
 namespace CfxSocketServer.Session;
 
 /// <summary>
 /// Interface for WebSocket session
 /// </summary>
-public interface IWebSocketSession
+public interface IWebSocketSession : IChannelWriter, IDisposable
 {
-    /// <summary>
-    /// Unique identifier for the session
-    /// </summary>
-    Guid Id { get; }
-
     /// <summary>
     /// Event handler for message recieved
     /// </summary>
@@ -36,18 +32,6 @@ public interface IWebSocketSession
     /// Start listening for transmissions
     /// </summary>
     void Start();
-
-    /// <summary>
-    /// Send text payload
-    /// </summary>
-    /// <param name="payload"></param>
-    Task WriteTextAsync(string payload);
-
-    /// <summary>
-    /// Send a binary payload
-    /// </summary>
-    /// <param name="payload"></param>
-    Task WriteBinaryAsync(List<byte> payload);
 
     /// <summary>
     /// Send a conn closed payload

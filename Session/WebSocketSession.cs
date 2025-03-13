@@ -13,7 +13,7 @@ namespace CfxSocketServer.Session;
 /// <param name="sslStream"></param>
 /// <param name="frameHeaderBuilder"></param>
 /// <param name="frameResolver"></param>
-public class WebSocketSession(SslStream sslStream, IFrameHeaderBuilder frameHeaderBuilder, IFrameResolver frameResolver) : IWebSocketSession, IDisposable
+public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frameHeaderBuilder, IFrameResolver frameResolver) : IWebSocketSession
 {
     #region Interace methods and properties
 
@@ -31,6 +31,22 @@ public class WebSocketSession(SslStream sslStream, IFrameHeaderBuilder frameHead
 
     /// <inheritdoc cref="IWebSocketSession.QueryStringParams"/>
     public Dictionary<string, string> QueryStringParams { get; set; }
+
+    /// <inheritdoc cref="IWebSocketSession.Name"/>
+    public string Name
+    {
+        get
+        {
+            if (QueryStringParams?.ContainsKey(Constant.Channel.UserName) ?? false)
+            {
+                return QueryStringParams[Constant.Channel.UserName];
+            }
+            else
+            {
+                return "Unknown";
+            }
+        }
+    }
 
     /// <inheritdoc cref="IWebSocketSession.Start"/>
     public void Start()
@@ -148,20 +164,20 @@ public class WebSocketSession(SslStream sslStream, IFrameHeaderBuilder frameHead
                         case OpCode.ConnClosed:
                             // Create the on close event and raise it 
                             //
-                            OnWebSocketSessionCloseEventArgs onSessionCloseEventArgs = new() { Transmission = transmission };
+                            OnWebSocketSessionCloseEventArgs onSessionCloseEventArgs = new() { Transmission = transmission, WebSocketSessionId = this.Id };
                             OnSessionClose(onSessionCloseEventArgs);
                             isListen = false;
                             break;
                         case OpCode.Pong:
                             // Create the on ping event and raise it
                             //
-                            OnWebSocketSessionPingEventArgs onPingEventArgs = new() { Transmission = transmission };
+                            OnWebSocketSessionPingEventArgs onPingEventArgs = new() { Transmission = transmission, WebSocketSessionId = this.Id };
                             OnPingReceived(onPingEventArgs);
                             break;
                         default:
                             // This transmission is a message, so we raise the on message event. 
                             //
-                            OnTransmissionArgs onTransmissionEventArgs = new() { Transmission = transmission };
+                            OnTransmissionArgs onTransmissionEventArgs = new() { Transmission = transmission, WebSocketSessionId = this.Id };
                             OnMessageReceived(onTransmissionEventArgs);
                             break;
                     }

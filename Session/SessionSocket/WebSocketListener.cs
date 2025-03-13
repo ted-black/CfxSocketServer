@@ -58,7 +58,7 @@ public class WebSocketListener : SecureSocket
         //
         OnWebSocketSessionOpenEventArgs onWebSocketSessionOpenEvent = new()
         {
-            WebSocketSession = new WebSocketSession(sslStream, new FrameHeaderBuilder(), frameResolver)
+            WebSocketSession = new WebSocketSession(ref sslStream, new FrameHeaderBuilder(), frameResolver)
             {
                 Id = Guid.NewGuid(),
                 QueryStringParams = QueryStringParams

@@ -11,4 +11,9 @@ public class OnTransmissionArgs: EventArgs
     /// The message
     /// </summary>
     public Transmission Transmission { get; set; }
+
+    /// <summary>
+    /// WebSocket session id
+    /// </summary>
+    public Guid WebSocketSessionId { get; set; }
 }

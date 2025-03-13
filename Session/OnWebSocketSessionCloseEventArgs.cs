@@ -8,4 +8,9 @@ public class OnWebSocketSessionCloseEventArgs : EventArgs
     /// On close op code
     /// </summary>
     public Transmission Transmission { get; set;}
+
+    /// <summary>
+    /// WebSocket session id
+    /// </summary>
+    public Guid WebSocketSessionId { get; set; }
 }

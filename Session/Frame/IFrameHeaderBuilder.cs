@@ -8,7 +8,18 @@ namespace CfxSocketServer.Session.Frame;
 /// </summary>
 public interface IFrameHeaderBuilder
 {
+    /// <summary>
+    /// Get outbound frame header
+    /// </summary>
+    /// <param name="length"></param>
+    /// <param name="opCode"></param>
+    /// <returns></returns>
     List<byte> GetOutboundFrameHeader(ulong length, OpCode opCode);
 
+    /// <summary>
+    /// Get inbound frame header
+    /// </summary>
+    /// <param name="sslStream"></param>
+    /// <returns></returns>
     Task<FrameHeader> GetInboundFrameHeaderAsync(SslStream sslStream);
 }

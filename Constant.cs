@@ -26,4 +26,9 @@ Sec-WebSocket-Accept: ";
         public static string WebSocketCert { get { return Environment.GetEnvironmentVariable("WebSocketCert"); } }
         public static string WebSocketKey { get { return Environment.GetEnvironmentVariable("WebSocketKey"); } }
     }
+
+    public class Channel
+    {
+        public const string UserName = "userName";
+    }
 }
