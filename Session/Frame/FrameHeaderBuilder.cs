@@ -8,11 +8,7 @@ namespace CfxSocketServer.Session.Frame;
 /// </summary>
 public class FrameHeaderBuilder : IFrameHeaderBuilder
 {
-    /// <summary>
-    /// Get outbound frame header for a payload and type opCode
-    /// </summary>
-    /// <param name="payload"></param>
-    /// <returns></returns>
+    /// <inheritdoc cref="IFrameHeaderBuilder.GetOutboundFrameHeader(ulong, OpCode)"/>
     public List<byte> GetOutboundFrameHeader(ulong length, OpCode opCode)
     {
         // Construct the frame header
@@ -22,12 +18,7 @@ public class FrameHeaderBuilder : IFrameHeaderBuilder
         return frameHeader;
     }
 
-    /// <summary>
-    /// Parse the stream for the inbound header. 
-    /// This method blocks until a payload is available at the 'Read' statement for the ssl stream.
-    /// </summary>
-    /// <param name="sslStream"></param>
-    /// <returns></returns>
+    /// <inheritdoc cref="IFrameHeaderBuilder.GetInboundFrameHeaderAsync(SslStream)"/>
     public async Task<FrameHeader> GetInboundFrameHeaderAsync(SslStream sslStream)
     {
         // Get bytes from stream according to length field

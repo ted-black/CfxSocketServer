@@ -36,9 +36,7 @@ public class FrameHeader: List<byte>, IFrameHeader
 
     #region public properties
 
-    /// <summary>
-    /// Is final frame 
-    /// </summary>
+    /// <inheritdoc cref="IFrameHeader.IsFinal"/>
     public bool IsFinal { 
         get 
         {
@@ -50,9 +48,7 @@ public class FrameHeader: List<byte>, IFrameHeader
         } 
     }
 
-    /// <summary>
-    /// Is mask
-    /// </summary>
+    /// <inheritdoc cref="IFrameHeader.IsMask"/>
     public bool IsMask
     {
         get
@@ -61,9 +57,7 @@ public class FrameHeader: List<byte>, IFrameHeader
         }
     }
 
-    /// <summary>
-    /// The op code
-    /// </summary>
+    /// <inheritdoc cref="IFrameHeader.OpCode"/>
     public OpCode? OpCode
     {
         get
@@ -76,9 +70,7 @@ public class FrameHeader: List<byte>, IFrameHeader
         }
     }
 
-    /// <summary>
-    /// The length of the payload
-    /// </summary>
+    /// <inheritdoc cref="IFrameHeader.PayloadLength"/>
     public ulong PayloadLength { 
         get {
             ulong length;

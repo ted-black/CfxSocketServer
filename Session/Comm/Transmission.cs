@@ -5,13 +5,9 @@ namespace CfxSocketServer.Session.Comm;
 
 public class Transmission : ITransmission
 {
-    /// <summary>
-    /// Payload bytes received
-    /// </summary>
+    /// <inheritdoc cref="ITransmission.Payload"/>
     public List<byte> Payload { get; set; }
 
-    /// <summary>
-    /// Frame header
-    /// </summary>
+    /// <inheritdoc cref="ITransmission.OpCode"/>
     public OpCode? OpCode { get; set; }
 }

@@ -2,22 +2,13 @@
 
 public class FrameResolver : IFrameResolver
 {
-    /// <summary>
-    /// Continuation frame byte queue
-    /// </summary>
+    /// <inheritdoc cref="IFrameResolver.ContinuationFrameByteQueue"/>
     public List<List<byte>> ContinuationFrameByteQueue { get; set; }
 
-    /// <summary>
-    /// The initial frame's op code in a sequence of continuation frames.
-    /// </summary>
+    /// <inheritdoc cref="IFrameResolver.InitialFrameOpCode"/>
     public OpCode? InitialFrameOpCode { get; set; }
 
-    /// <summary>
-    /// Resolve continuation frames
-    /// </summary>
-    /// <param name="frameHeader"></param>
-    /// <param name="payloadByteList"></param>
-    /// <returns></returns>
+    /// <inheritdoc cref="IFrameResolver.ResolveFrame(FrameHeader, List{byte})"/>
     public List<byte> ResolveFrame(FrameHeader frameHeader, List<byte> payloadByteList)
     {
         if (!frameHeader.IsFinal)
@@ -40,9 +31,7 @@ public class FrameResolver : IFrameResolver
         return payloadByteList;
     }
 
-    /// <summary>
-    /// Reset
-    /// </summary>
+    /// <inheritdoc cref="IFrameResolver.Reset"/>
     public void Reset()
     {
         InitialFrameOpCode = null;
