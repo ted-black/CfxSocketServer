@@ -15,11 +15,6 @@ namespace CfxSocketServer.Channel;
 /// <param name="webSocketSessions"></param>
 public class WebSocketChannel<T>(ConcurrentDictionary<Guid, T> webSocketSessions) : IWebSocketChannel<T> where T : IChannelWriter, IComparable<IWebSocketChannel<T>>
 {
-    /// <summary>
-    /// The server websocket sessions
-    /// </summary>
-    private readonly ConcurrentDictionary<Guid, T> webSocketSessions = webSocketSessions;
-
     /// <inheritdoc cref="IWebSocketChannel{T}.Id"/>
     public Guid Id { get; set; } = Guid.NewGuid();
 

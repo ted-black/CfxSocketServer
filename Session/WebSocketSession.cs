@@ -20,7 +20,7 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// <inheritdoc cref="IWebSocketSession.Id"/>
     public Guid Id { get; set; }
 
-    /// <inheritdoc cref="IWebSocketSession.QueryStringParams"/>
+    /// <inheritdoc cref="IWebSocketSession.OnMessage"/>
     public event EventHandler OnMessage;
 
     /// <inheritdoc cref="IWebSocketSession.OnClose"/>
@@ -207,8 +207,7 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     {
         // Recieve frame header, where Read is called on the ssl stream object and therefore blocks.
         //
-        FrameHeaderBuilder frameHeaderManager = new();
-        FrameHeader frameHeader = await frameHeaderManager.GetInboundFrameHeaderAsync(sslStream);
+        FrameHeader frameHeader = await frameHeaderBuilder.GetInboundFrameHeaderAsync(sslStream);
 
         List<byte> payloadByteList;
 
