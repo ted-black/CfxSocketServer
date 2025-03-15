@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,27 +15,43 @@ public interface IWebSocketChannel<T> where T : IChannelWriter
     Guid Id { get; set; }
 
     /// <summary>
+    /// Name
+    /// </summary>
+    string Name { get; }
+
+    /// <summary>
     /// Channel subscribers
     /// </summary>
-    List<SubscriberInfo> Subscribers { get; }
+    ConcurrentDictionary<Guid, T> Subscribers { get; }
+
+    /// <summary>
+    /// Orphaned subscribers
+    /// </summary>
+    ConcurrentDictionary<Guid, string> Orphans { get; }
+
+    /// <summary>
+    /// Content
+    /// </summary>
+    ConcurrentQueue<string> Content { get; }
 
     /// <summary>
     /// Subscribe to channel
     /// </summary>
     /// <param name="subscriber"></param>
-    void Subscribe(SubscriberInfo subscriber);
+    bool Subscribe(T subscriber);
 
     /// <summary>
     /// Unsubscribe from the channel
     /// </summary>
-    /// <param name="subscriber"></param>
-    void UnSubscribe(ISubscriberInfo subscriberToRemove);
+    /// <param name="subscriberToRemove"></param>
+    void UnSubscribe(T subscriberToRemove);
 
     /// <summary>
-    /// Get channel info
+    /// Can a sesion resubscribe to a channel of the same collection of subscribers
     /// </summary>
+    /// <param name="sbuscriberNames"></param>
     /// <returns></returns>
-    ChannelInfo GetChannelInfo();
+    bool CanReSubscribe(List<string> sbuscriberNames);
 
     /// <summary>
     /// Write utf8 to all subscriptions

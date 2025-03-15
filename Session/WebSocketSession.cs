@@ -1,4 +1,5 @@
-﻿using CfxSocketServer.Session.Comm;
+﻿using CfxSocketServer.Channel;
+using CfxSocketServer.Session.Comm;
 using CfxSocketServer.Session.Frame;
 using System.Net.NetworkInformation;
 using System.Net.Security;
@@ -47,6 +48,9 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
             }
         }
     }
+
+    /// <inheritdoc cref="IChannelWriter.ChannelId"/>
+    public Guid? ChannelId { get; set; } = null;
 
     /// <inheritdoc cref="IWebSocketSession.Start"/>
     public void Start()

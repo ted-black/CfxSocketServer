@@ -19,6 +19,11 @@ public interface IChannelWriter
     string Name { get; }
 
     /// <summary>
+    /// The channel I'm a member of
+    /// </summary>
+    Guid? ChannelId { get; set; }
+
+    /// <summary>
     /// Send text payload
     /// </summary>
     /// <param name="payload"></param>

@@ -13,41 +13,46 @@ namespace CfxSocketServer.Channel;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <param name="webSocketSessions"></param>
-public class WebSocketChannel<T>(ConcurrentDictionary<Guid, T> webSocketSessions) : IWebSocketChannel<T> where T : IChannelWriter, IComparable<IWebSocketChannel<T>>
+public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWriter, IComparable<IWebSocketChannel<T>>
 {
     /// <inheritdoc cref="IWebSocketChannel{T}.Id"/>
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    /// <inheritdoc cref="IWebSocketChannel{T}.Subscribers"/>
-    public List<SubscriberInfo> Subscribers { get; private set; } = [];
-
-    /// <inheritdoc cref="IWebSocketChannel{T}.Subscribe(ISubscriberInfo)"/>
-    public ChannelInfo GetChannelInfo()
-    {
-        ChannelInfo channelInfo = new ChannelInfo()
+    /// <summary>
+    /// <inheritdoc cref="IWebSocketChannel{T}.Name"/>
+    /// </summary>
+    public string Name 
+    { 
+        get
         {
-            Id = Id,
-            Subscribers = []
-        };
-        foreach (SubscriberInfo subscriberInfo in Subscribers)
-        {
-            channelInfo.Subscribers.Add(subscriberInfo);
-        }
+            string nameString = string.Empty;
 
-        return channelInfo;
+            foreach (T name in Subscribers.Values)
+            {
+                nameString += $"{name.Name}, ";
+            }
+
+            return nameString[..^2];
+        } 
     }
+
+    /// <inheritdoc cref="IWebSocketChannel{T}.Subscribers"/>
+    public ConcurrentDictionary<Guid, T> Subscribers { get; private set; } = [];
+
+    /// <inheritdoc cref="IWebSocketChannel{T}.Orphans"/>
+    public ConcurrentDictionary<Guid, string> Orphans { get; private set; }
+
+    /// <inheritdoc cref="IWebSocketChannel{T}.Content"/>
+    public ConcurrentQueue<string> Content {  get; private set; }
 
     /// <inheritdoc cref="IWebSocketChannel{T}.Subscribe(ISubscriberInfo)"/>
     public async Task WriteTextAllAsync(string payload)
     {
         List<Task> taskList = [];
 
-        foreach (SubscriberInfo subscriberInfo in Subscribers)
+        foreach (T subscriber in Subscribers.Values)
         {
-            if (webSocketSessions.TryGetValue(subscriberInfo.Id, out T subscriber))
-            {
-                taskList.Add(subscriber.WriteTextAsync(payload));
-            }
+            taskList.Add(subscriber.WriteTextAsync(payload));
         }
 
         await Task.WhenAll([.. taskList]);
@@ -58,27 +63,71 @@ public class WebSocketChannel<T>(ConcurrentDictionary<Guid, T> webSocketSessions
     {
         List<Task> taskList = [];
 
-        foreach (SubscriberInfo subscriberInfo in Subscribers)
+        foreach (T subscriber in Subscribers.Values)
         {
-            if (webSocketSessions.TryGetValue(subscriberInfo.Id, out T subscriber))
-            {
-                taskList.Add(subscriber.WriteBinaryAsync(bytes));
-            }
+            taskList.Add(subscriber.WriteBinaryAsync(bytes));
         }
 
         await Task.WhenAll([.. taskList]);
     }
+    
 
-    /// <inheritdoc cref="IWebSocketChannel{T}.Subscribe(ISubscriberInfo)"/>
-    public void Subscribe(SubscriberInfo subscriber)
+    /// <inheritdoc cref="IWebSocketChannel{T}.Subscribe(T)"/>
+    public bool Subscribe(T subscriber)
     {
-        Subscribers.Add(subscriber);
+        bool isAdded =  Subscribers.TryAdd(subscriber.Id, subscriber);
+        Guid orphanIdToRemove = Guid.Empty;
+
+        if (isAdded)
+        {
+            subscriber.ChannelId = Id;
+            foreach (Guid orphan in Orphans.Keys)
+            {
+                if (Orphans.TryGetValue(orphan, out string orphanSuscriber))
+                {
+                    if(orphanSuscriber == subscriber.Name)
+                    {
+                        orphanIdToRemove = orphan;
+                    }
+                }
+            }
+
+            if (orphanIdToRemove != Guid.Empty)
+            {
+                Orphans.TryRemove(orphanIdToRemove, out string _);
+            }
+        }
+
+        return isAdded;
     }
 
-    /// <inheritdoc cref="IWebSocketChannel{T}.UnSubscribe(ISubscriberInfo)"/>
-    public void UnSubscribe(ISubscriberInfo subscriberToRemove)
+    /// <inheritdoc cref="IWebSocketChannel{T}.UnSubscribe(T)"/>
+    public void UnSubscribe(T subscriberToRemove)
     {
-        Subscribers.RemoveAll(subscriber => subscriber.Id == subscriberToRemove.Id);
+        if(Subscribers.TryRemove(subscriberToRemove.Id, out _))
+        {
+            Orphans.TryAdd(subscriberToRemove.Id, subscriberToRemove.Name);
+        }
+    }
+
+    /// <summary>
+    /// <inheritdoc cref="IWebSocketChannel{T}.CanReSubscribe(List{string}"/>
+    /// </summary>
+    /// <param name="subscriberNames"></param>
+    /// <returns></returns>
+    public bool CanReSubscribe(List<string> subscriberNames)
+    {
+        List<string> currentSubscriberNames = [];
+        foreach (T subscriber in Subscribers.Values)
+        {
+            currentSubscriberNames.Add(subscriber.Name);
+        }
+        foreach (string orphanedSubscriber in Orphans.Values)
+        {
+            currentSubscriberNames.Add(orphanedSubscriber);
+        }
+
+        return new HashSet<string>(subscriberNames).SetEquals(currentSubscriberNames);
     }
 
     /// <inheritdoc cref="IComparable.CompareTo(object?)"/>
@@ -87,14 +136,14 @@ public class WebSocketChannel<T>(ConcurrentDictionary<Guid, T> webSocketSessions
         List<Guid> otherIds = [];
         List<Guid> subscriberIds = [];
 
-        foreach (SubscriberInfo otherInfo in otherChannel.Subscribers)
+        foreach (Guid otherSubscriberId in otherChannel.Subscribers.Keys)
         {
-            otherIds.Add(otherInfo.Id);
+            otherIds.Add(otherSubscriberId);
         }
 
-        foreach (SubscriberInfo subscriber in Subscribers)
+        foreach (Guid subscriberId in Subscribers.Keys)
         {
-            subscriberIds.Add(subscriber.Id);
+            subscriberIds.Add(subscriberId);
         }
         bool setsAreEqual = new HashSet<Guid>(otherIds).SetEquals(subscriberIds);
 

@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -33,6 +34,8 @@ public class WebSocketSessionManager
         webSocketSession.Start();
 
         webSocketSessions.TryAdd(webSocketSession.Id, webSocketSession);
+
+        string json =  JsonSerializer.Serialize(webSocketSession);
     }
 
     private void WebSocketSessionPing(object sender, EventArgs e)
