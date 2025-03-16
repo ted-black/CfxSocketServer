@@ -1,5 +1,5 @@
 ﻿using CfxSocketServer.Channel;
-using CfxSocketServer.Session.Comm;
+using CfxSocketServer.Comm.Server;
 using CfxSocketServer.Session.Frame;
 using System.Net.NetworkInformation;
 using System.Net.Security;
@@ -52,6 +52,11 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// <inheritdoc cref="IChannelWriter.ChannelId"/>
     public Guid? ChannelId { get; set; } = null;
 
+    /// <summary>
+    /// Is listen to control listening loop
+    /// </summary>
+    public bool IsListen { get; set; } = true;
+
     /// <inheritdoc cref="IWebSocketSession.Start"/>
     public void Start()
     {
@@ -90,7 +95,10 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// <inheritdoc cref="IDisposable.Dispose"/>
     public void Dispose()
     {
+        sslStream.Flush();
+        sslStream.Close();
         sslStream.Dispose();
+        GC.SuppressFinalize(this);
         Console.WriteLine("Session disposed.");
     }
 
@@ -107,11 +115,6 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// SSL stream for secure communication
     /// </summary>
     private SslStream sslStream = sslStream;
-
-    /// <summary>
-    /// Is listen to control listening loop
-    /// </summary>
-    private bool isListen = true;
 
     #endregion Private members
 
@@ -149,7 +152,7 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// </summary>
     private async Task ListenAsync()
     {
-        while (isListen)
+        while (IsListen)
         {
             try
             {
@@ -166,22 +169,22 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
                     switch (transmission.OpCode)
                     {
                         case OpCode.ConnClosed:
+                            IsListen = false;
                             // Create the on close event and raise it and kill the listening loop i.e. the client has closed the conn
                             //
-                            OnWebSocketSessionCloseEventArgs onSessionCloseEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id };
+                            OnWebSocketSessionCloseEventArgs onSessionCloseEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id, WebSocketSessionName = Name };
                             OnSessionClose(onSessionCloseEventArgs);
-                            isListen = false;
                             break;
                         case OpCode.Pong:
                             // Create the on ping event and raise it
                             //
-                            OnWebSocketSessionPingEventArgs onPingEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id };
+                            OnWebSocketSessionPingEventArgs onPingEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id, WebSocketSessionName = Name };
                             OnPingReceived(onPingEventArgs);
                             break;
                         default:
                             // This transmission is a message, so we raise the on message event. 
                             //
-                            OnTransmissionArgs onTransmissionEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id };
+                            OnTransmissionArgs onTransmissionEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id, WebSocketSessionName = Name };
                             OnMessageReceived(onTransmissionEventArgs);
                             break;
                     }
@@ -189,18 +192,19 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
             }
             catch (ObjectDisposedException ex)
             {
-                isListen = false;
+                IsListen = false;
                 string message = ex.Message.Split(':')[^1].Trim().Replace("'", "").Replace(".", "");
                 Console.WriteLine($"Object disposed exception: {message}");
             }
             catch (Exception ex)
             {
-                isListen = false;
+                IsListen = false;
                 Console.WriteLine($"Exception: {ex.Message}");
             }
         }
 
-        Console.WriteLine("Session closed.");
+        Dispose();
+        Console.WriteLine($"Session closed, sessionId: {Id}");
     }
 
     /// <summary>

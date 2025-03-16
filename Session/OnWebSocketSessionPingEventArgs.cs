@@ -1,4 +1,4 @@
-﻿using CfxSocketServer.Session.Comm;
+﻿using CfxSocketServer.Comm.Server;
 
 namespace CfxSocketServer.Session;
 
@@ -13,4 +13,9 @@ public class OnWebSocketSessionPingEventArgs : EventArgs
     /// WebSocket session id
     /// </summary>
     public Guid WebSocketSessionId { get; set; }
+
+    /// <summary>
+    /// WebSocket session name
+    /// </summary>
+    public string WebSocketSessionName { get; set; }
 }

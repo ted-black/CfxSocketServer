@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CfxSocketServer.Session.Comm;
+namespace CfxSocketServer.Comm.Server;
 
 /// <summary>
 /// Event args for on message event
@@ -16,4 +16,9 @@ public class OnTransmissionArgs: EventArgs
     /// WebSocket session id
     /// </summary>
     public Guid WebSocketSessionId { get; set; }
+
+    /// <summary>
+    /// WebSocket session name
+    /// </summary>
+    public string WebSocketSessionName { get; set; }
 }

@@ -1,6 +1,6 @@
 ﻿using CfxSocketServer.Session.Frame;
 
-namespace CfxSocketServer.Session.Comm;
+namespace CfxSocketServer.Comm.Server;
 
 interface ITransmission
 {

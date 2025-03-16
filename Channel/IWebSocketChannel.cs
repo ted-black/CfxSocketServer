@@ -22,12 +22,7 @@ public interface IWebSocketChannel<T> where T : IChannelWriter
     /// <summary>
     /// Channel subscribers
     /// </summary>
-    ConcurrentDictionary<Guid, T> Subscribers { get; }
-
-    /// <summary>
-    /// Orphaned subscribers
-    /// </summary>
-    ConcurrentDictionary<Guid, string> Orphans { get; }
+    ConcurrentDictionary<string, T> Subscribers { get; }
 
     /// <summary>
     /// Content
@@ -44,14 +39,7 @@ public interface IWebSocketChannel<T> where T : IChannelWriter
     /// Unsubscribe from the channel
     /// </summary>
     /// <param name="subscriberToRemove"></param>
-    void UnSubscribe(T subscriberToRemove);
-
-    /// <summary>
-    /// Can a sesion resubscribe to a channel of the same collection of subscribers
-    /// </summary>
-    /// <param name="sbuscriberNames"></param>
-    /// <returns></returns>
-    bool CanReSubscribe(List<string> sbuscriberNames);
+    bool UnSubscribe(T subscriberToRemove);
 
     /// <summary>
     /// Write utf8 to all subscriptions

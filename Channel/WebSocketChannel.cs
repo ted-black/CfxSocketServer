@@ -37,10 +37,7 @@ public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWrit
     }
 
     /// <inheritdoc cref="IWebSocketChannel{T}.Subscribers"/>
-    public ConcurrentDictionary<Guid, T> Subscribers { get; private set; } = [];
-
-    /// <inheritdoc cref="IWebSocketChannel{T}.Orphans"/>
-    public ConcurrentDictionary<Guid, string> Orphans { get; private set; }
+    public ConcurrentDictionary<string, T> Subscribers { get; private set; } = [];
 
     /// <inheritdoc cref="IWebSocketChannel{T}.Content"/>
     public ConcurrentQueue<string> Content {  get; private set; }
@@ -75,79 +72,24 @@ public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWrit
     /// <inheritdoc cref="IWebSocketChannel{T}.Subscribe(T)"/>
     public bool Subscribe(T subscriber)
     {
-        bool isAdded =  Subscribers.TryAdd(subscriber.Id, subscriber);
+        bool isAdded =  Subscribers.TryAdd(subscriber.Name, subscriber);
         Guid orphanIdToRemove = Guid.Empty;
-
-        if (isAdded)
-        {
-            subscriber.ChannelId = Id;
-            foreach (Guid orphan in Orphans.Keys)
-            {
-                if (Orphans.TryGetValue(orphan, out string orphanSuscriber))
-                {
-                    if(orphanSuscriber == subscriber.Name)
-                    {
-                        orphanIdToRemove = orphan;
-                    }
-                }
-            }
-
-            if (orphanIdToRemove != Guid.Empty)
-            {
-                Orphans.TryRemove(orphanIdToRemove, out string _);
-            }
-        }
 
         return isAdded;
     }
 
     /// <inheritdoc cref="IWebSocketChannel{T}.UnSubscribe(T)"/>
-    public void UnSubscribe(T subscriberToRemove)
+    public bool UnSubscribe(T subscriberToRemove)
     {
-        if(Subscribers.TryRemove(subscriberToRemove.Id, out _))
-        {
-            Orphans.TryAdd(subscriberToRemove.Id, subscriberToRemove.Name);
-        }
-    }
-
-    /// <summary>
-    /// <inheritdoc cref="IWebSocketChannel{T}.CanReSubscribe(List{string}"/>
-    /// </summary>
-    /// <param name="subscriberNames"></param>
-    /// <returns></returns>
-    public bool CanReSubscribe(List<string> subscriberNames)
-    {
-        List<string> currentSubscriberNames = [];
-        foreach (T subscriber in Subscribers.Values)
-        {
-            currentSubscriberNames.Add(subscriber.Name);
-        }
-        foreach (string orphanedSubscriber in Orphans.Values)
-        {
-            currentSubscriberNames.Add(orphanedSubscriber);
-        }
-
-        return new HashSet<string>(subscriberNames).SetEquals(currentSubscriberNames);
+        return Subscribers.TryRemove(subscriberToRemove.Name, out _);
     }
 
     /// <inheritdoc cref="IComparable.CompareTo(object?)"/>
     public int CompareTo(IWebSocketChannel<T> otherChannel)
     {
-        List<Guid> otherIds = [];
-        List<Guid> subscriberIds = [];
 
-        foreach (Guid otherSubscriberId in otherChannel.Subscribers.Keys)
-        {
-            otherIds.Add(otherSubscriberId);
-        }
 
-        foreach (Guid subscriberId in Subscribers.Keys)
-        {
-            subscriberIds.Add(subscriberId);
-        }
-        bool setsAreEqual = new HashSet<Guid>(otherIds).SetEquals(subscriberIds);
-
-        if (setsAreEqual)
+        if (otherChannel.Name == Name)
         {
             return 0;
         }

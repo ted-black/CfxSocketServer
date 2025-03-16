@@ -1,4 +1,6 @@
-﻿using CfxSocketServer.Session.SessionSocket;
+﻿using CfxSocketServer.Channel;
+using CfxSocketServer.Comm;
+using CfxSocketServer.Session.SessionSocket;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,7 +14,9 @@ namespace CfxSocketServer.Session;
 
 public class WebSocketSessionManager
 {
-    private ConcurrentDictionary<Guid, IWebSocketSession> webSocketSessions = new();
+    private readonly ConcurrentDictionary<Guid, IWebSocketSession> webSocketSessions = new();
+    private readonly WebSocketChannelCollection webSocketChannels = new();
+    private CommProcessor commProcessor;
 
     /// <inheritdoc cref="IWebSocketSessionManager.StartSession"/>
     public void StartSession()
@@ -20,6 +24,8 @@ public class WebSocketSessionManager
         WebSocketListener webSocketListener = new();
         webSocketListener.OnWebSocketSessionOpen += WebSocketSessionOpen;
         webSocketListener.Start();
+
+        commProcessor = new CommProcessor(webSocketSessions, webSocketChannels);
     }
 
     private void WebSocketSessionOpen(object sender, EventArgs e)
@@ -35,7 +41,9 @@ public class WebSocketSessionManager
 
         webSocketSessions.TryAdd(webSocketSession.Id, webSocketSession);
 
-        string json =  JsonSerializer.Serialize(webSocketSession);
+        Console.WriteLine($"Session opened, sessionId: {webSocketSession.Id}, sessionName: {webSocketSession.Name}");
+
+        commProcessor.BroadcastSessions(webSocketSession.Id);
     }
 
     private void WebSocketSessionPing(object sender, EventArgs e)
@@ -52,5 +60,6 @@ public class WebSocketSessionManager
     {
         OnWebSocketSessionCloseEventArgs onWebSocketSessionCloseEventArgs = (OnWebSocketSessionCloseEventArgs)e;
         webSocketSessions.TryRemove(onWebSocketSessionCloseEventArgs.WebSocketSessionId, out _);
+        Console.WriteLine($"Session removed, sessionId: {onWebSocketSessionCloseEventArgs.WebSocketSessionId}");
     }
 }
