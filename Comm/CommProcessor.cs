@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Collections.Concurrent;
 using System.Text;
-using System.Threading.Channels;
 
 namespace CfxSocketServer.Comm;
 
@@ -59,6 +58,10 @@ public class CommProcessor(ConcurrentDictionary<Guid, WebSocketSession> webSocke
         }
     }
 
+    /// <summary>
+    /// Process messaging via channel
+    /// </summary>
+    /// <param name="message"></param>
     private void ProcessContent(Message message)
     {
         IWebSocketChannel<IChannelWriter> channel = webSocketChannels.Get(message.ChannelId);
@@ -74,6 +77,10 @@ public class CommProcessor(ConcurrentDictionary<Guid, WebSocketSession> webSocke
         }
     }
 
+    /// <summary>
+    /// Process commands to subscribers
+    /// </summary>
+    /// <param name="message"></param>
     private void ProcessCommand(Message message)
     {
         switch (message.Command)
@@ -110,6 +117,10 @@ public class CommProcessor(ConcurrentDictionary<Guid, WebSocketSession> webSocke
         }
     }
 
+    /// <summary>
+    /// Broadcast channels to appropriate subscribers.
+    /// </summary>
+    /// <param name="channel"></param>
     private void BroadcastChannels(WebSocketChannel<IChannelWriter> channel)
     {
         List<WebSocketChannel<IChannelWriter>> channels = [];
