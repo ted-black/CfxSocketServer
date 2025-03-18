@@ -24,6 +24,11 @@ public interface IChannelWriter
     Guid? ChannelId { get; set; }
 
     /// <summary>
+    /// Is the channel writer listening
+    /// </summary>
+    bool IsListening { get; set; }
+
+    /// <summary>
     /// Send text payload
     /// </summary>
     /// <param name="payload"></param>

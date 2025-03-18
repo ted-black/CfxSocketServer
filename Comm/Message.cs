@@ -8,6 +8,9 @@ public class Message : IMessage
     /// <inheritdoc cref="IMessage.SessionId"/>
     public Guid SessionId { get; set; }
 
+    /// <inheritdoc cref="IMessage.ChannelId"/>
+    public Guid ChannelId { get; set; }
+
     /// <inheritdoc cref="IMessage.Type"/>
     [JsonConverter(typeof(StringEnumConverter))]
     public MessageType Type { get; set; }

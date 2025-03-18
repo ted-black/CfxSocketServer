@@ -19,7 +19,7 @@ public class WebSocketChannelCollection : IWebSocketChannelCollection
     {
         foreach (KeyValuePair<Guid, IWebSocketChannel<IChannelWriter>> channel in channels)
         {
-            if (channel.Value.CompareTo(channelToAdd) == 0)
+            if (channel.Value.IsExist(channelToAdd))
             {
                 return false;
             }

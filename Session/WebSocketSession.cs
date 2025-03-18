@@ -52,14 +52,13 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// <inheritdoc cref="IChannelWriter.ChannelId"/>
     public Guid? ChannelId { get; set; } = null;
 
-    /// <summary>
-    /// Is listen to control listening loop
-    /// </summary>
-    public bool IsListen { get; set; } = true;
+    /// <inheritdoc cref="IChannelWriter.IsListening"/>
+    public bool IsListening { get =>  isListening; set => isListening = value; }
 
     /// <inheritdoc cref="IWebSocketSession.Start"/>
     public void Start()
     {
+        isListening = true;
         _ = Task.Run(async () => await ListenAsync());
     }
 
@@ -107,6 +106,11 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     #region Private members
 
     /// <summary>
+    /// Am I listening
+    /// </summary>
+    private bool isListening = false;
+
+    /// <summary>
     /// Write lock to control write access for ssl stream
     /// </summary>
     private SemaphoreSlim writeLock = new(1, 1);
@@ -152,7 +156,7 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// </summary>
     private async Task ListenAsync()
     {
-        while (IsListen)
+        while (isListening)
         {
             try
             {
@@ -169,7 +173,7 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
                     switch (transmission.OpCode)
                     {
                         case OpCode.ConnClosed:
-                            IsListen = false;
+                            isListening = false;
                             // Create the on close event and raise it and kill the listening loop i.e. the client has closed the conn
                             //
                             OnWebSocketSessionCloseEventArgs onSessionCloseEventArgs = new() { Transmission = transmission, WebSocketSessionId = Id, WebSocketSessionName = Name };
@@ -192,13 +196,13 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
             }
             catch (ObjectDisposedException ex)
             {
-                IsListen = false;
+                isListening = false;
                 string message = ex.Message.Split(':')[^1].Trim().Replace("'", "").Replace(".", "");
                 Console.WriteLine($"Object disposed exception: {message}");
             }
             catch (Exception ex)
             {
-                IsListen = false;
+                isListening = false;
                 Console.WriteLine($"Exception: {ex.Message}");
             }
         }

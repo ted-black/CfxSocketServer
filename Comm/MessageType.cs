@@ -6,5 +6,5 @@
 public enum MessageType
 {
     Command = 1,
-    Message = 2
+    Content = 2
 }

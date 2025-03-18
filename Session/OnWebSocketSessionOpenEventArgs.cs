@@ -2,5 +2,5 @@
 
 public class OnWebSocketSessionOpenEventArgs : EventArgs
 {
-    public IWebSocketSession WebSocketSession;
+    public WebSocketSession WebSocketSession;
 }

@@ -1,5 +1,6 @@
 ﻿using CfxSocketServer.Channel;
 using CfxSocketServer.Comm;
+using CfxSocketServer.Comm.Server;
 using CfxSocketServer.Session.SessionSocket;
 using System;
 using System.Collections.Concurrent;
@@ -14,7 +15,7 @@ namespace CfxSocketServer.Session;
 
 public class WebSocketSessionManager
 {
-    private readonly ConcurrentDictionary<Guid, IWebSocketSession> webSocketSessions = new();
+    private readonly ConcurrentDictionary<Guid, WebSocketSession> webSocketSessions = new();
     private readonly WebSocketChannelCollection webSocketChannels = new();
     private CommProcessor commProcessor;
 
@@ -31,7 +32,7 @@ public class WebSocketSessionManager
     private void WebSocketSessionOpen(object sender, EventArgs e)
     {
         OnWebSocketSessionOpenEventArgs onWebSocketSessionOpenEventArgs = (OnWebSocketSessionOpenEventArgs)e;
-        IWebSocketSession webSocketSession = onWebSocketSessionOpenEventArgs.WebSocketSession;
+        WebSocketSession webSocketSession = onWebSocketSessionOpenEventArgs.WebSocketSession;
 
         webSocketSession.OnClose += WebSocketSessionClose;
         webSocketSession.OnMessage += WebSocketSessionMessage;
@@ -43,17 +44,17 @@ public class WebSocketSessionManager
 
         Console.WriteLine($"Session opened, sessionId: {webSocketSession.Id}, sessionName: {webSocketSession.Name}");
 
-        commProcessor.BroadcastSessions(webSocketSession.Id);
+        commProcessor.BroadcastSession(webSocketSession.Id);
     }
 
     private void WebSocketSessionPing(object sender, EventArgs e)
     {
-        throw new NotImplementedException();
     }
 
     private void WebSocketSessionMessage(object sender, EventArgs e)
     {
-        throw new NotImplementedException();
+        OnTransmissionArgs onTransmissionArgs = (OnTransmissionArgs)e;
+        commProcessor.ProcessMessage(onTransmissionArgs);
     }
 
     private void WebSocketSessionClose(object sender, EventArgs e)

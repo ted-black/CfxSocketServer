@@ -11,6 +11,11 @@ public interface IMessage
     Guid SessionId { get; set; }
 
     /// <summary>
+    /// Channel id
+    /// </summary>
+    Guid ChannelId { get; set; }
+
+    /// <summary>
     /// Message type
     /// </summary>
     MessageType Type { get; set; }

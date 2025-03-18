@@ -22,7 +22,7 @@ public interface IWebSocketChannel<T> where T : IChannelWriter
     /// <summary>
     /// Channel subscribers
     /// </summary>
-    ConcurrentDictionary<string, T> Subscribers { get; }
+    ConcurrentDictionary<Guid, T> Subscribers { get; }
 
     /// <summary>
     /// Content
@@ -60,5 +60,5 @@ public interface IWebSocketChannel<T> where T : IChannelWriter
     /// </summary>
     /// <param name="otherChannel"></param>
     /// <returns></returns>
-    int CompareTo(IWebSocketChannel<T> otherChannel);
+    bool IsExist(IWebSocketChannel<T> otherChannel);
 }

@@ -13,7 +13,7 @@ namespace CfxSocketServer.Channel;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <param name="webSocketSessions"></param>
-public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWriter, IComparable<IWebSocketChannel<T>>
+public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWriter
 {
     /// <inheritdoc cref="IWebSocketChannel{T}.Id"/>
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -26,10 +26,19 @@ public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWrit
         get
         {
             string nameString = string.Empty;
+            SortedSet<string> names = new();
 
-            foreach (T name in Subscribers.Values)
+            foreach (T subscriber in Subscribers.Values)
             {
-                nameString += $"{name.Name}, ";
+                if (!names.Contains(nameString))
+                {
+                    names.Add(subscriber.Name);
+                }
+            }
+
+            foreach (string name in names)
+            {
+                nameString += $"{name}, ";
             }
 
             return nameString[..^2];
@@ -37,19 +46,24 @@ public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWrit
     }
 
     /// <inheritdoc cref="IWebSocketChannel{T}.Subscribers"/>
-    public ConcurrentDictionary<string, T> Subscribers { get; private set; } = [];
+    public ConcurrentDictionary<Guid, T> Subscribers { get; private set; } = [];
 
     /// <inheritdoc cref="IWebSocketChannel{T}.Content"/>
-    public ConcurrentQueue<string> Content {  get; private set; }
+    public ConcurrentQueue<string> Content {  get; private set; } = [];
 
     /// <inheritdoc cref="IWebSocketChannel{T}.Subscribe(ISubscriberInfo)"/>
     public async Task WriteTextAllAsync(string payload)
     {
         List<Task> taskList = [];
 
+        Content.Enqueue(payload);
+
         foreach (T subscriber in Subscribers.Values)
         {
-            taskList.Add(subscriber.WriteTextAsync(payload));
+            if (subscriber.IsListening)
+            {
+                taskList.Add(subscriber.WriteTextAsync(payload));
+            }
         }
 
         await Task.WhenAll([.. taskList]);
@@ -62,7 +76,9 @@ public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWrit
 
         foreach (T subscriber in Subscribers.Values)
         {
-            taskList.Add(subscriber.WriteBinaryAsync(bytes));
+            if (subscriber.IsListening) { 
+                taskList.Add(subscriber.WriteBinaryAsync(bytes));
+            }
         }
 
         await Task.WhenAll([.. taskList]);
@@ -72,28 +88,24 @@ public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWrit
     /// <inheritdoc cref="IWebSocketChannel{T}.Subscribe(T)"/>
     public bool Subscribe(T subscriber)
     {
-        bool isAdded =  Subscribers.TryAdd(subscriber.Name, subscriber);
-        Guid orphanIdToRemove = Guid.Empty;
-
-        return isAdded;
+        subscriber.ChannelId = Id;
+        return Subscribers.TryAdd(subscriber.Id, subscriber);
     }
 
     /// <inheritdoc cref="IWebSocketChannel{T}.UnSubscribe(T)"/>
     public bool UnSubscribe(T subscriberToRemove)
     {
-        return Subscribers.TryRemove(subscriberToRemove.Name, out _);
+        return Subscribers.TryRemove(subscriberToRemove.Id, out _);
     }
 
     /// <inheritdoc cref="IComparable.CompareTo(object?)"/>
-    public int CompareTo(IWebSocketChannel<T> otherChannel)
+    public bool IsExist(IWebSocketChannel<T> otherChannel)
     {
-
-
         if (otherChannel.Name == Name)
         {
-            return 0;
+            return true;
         }
 
-        return 1;
+        return false;
     } 
 }
