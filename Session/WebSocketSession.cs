@@ -18,7 +18,7 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
 {
     #region Interace methods and properties
 
-    /// <inheritdoc cref="IWebSocketSession.Id"/>
+    /// <inheritdoc cref="IChannelWriter.Id"/>
     public Guid Id { get; set; }
 
     /// <inheritdoc cref="IWebSocketSession.OnMessage"/>
@@ -33,7 +33,7 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
     /// <inheritdoc cref="IWebSocketSession.QueryStringParams"/>
     public Dictionary<string, string> QueryStringParams { get; set; }
 
-    /// <inheritdoc cref="IWebSocketSession.Name"/>
+    /// <inheritdoc cref="IChannelWriter.Name"/>
     public string Name
     {
         get
@@ -62,14 +62,14 @@ public class WebSocketSession(ref SslStream sslStream, IFrameHeaderBuilder frame
         _ = Task.Run(async () => await ListenAsync());
     }
 
-    /// <inheritdoc cref="IWebSocketSession.WriteTextAsync"/>
+    /// <inheritdoc cref="IChannelWriter.WriteTextAsync"/>
     public async Task WriteTextAsync(string payload)
     {
         List<byte> payloadBytes = BuildTextPayload(payload);
         await sslStream.WriteAsync(payloadBytes.ToArray());
     }
 
-    /// <inheritdoc cref="IWebSocketSession.WriteBinaryAsync"/>
+    /// <inheritdoc cref="IChannelWriter.WriteBinaryAsync"/>
     public async Task WriteBinaryAsync(List<byte> payload)
     {
         List<byte> payloadBytes = BuildBinaryPayload(payload);

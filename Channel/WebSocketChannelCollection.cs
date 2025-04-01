@@ -28,6 +28,9 @@ public class WebSocketChannelCollection : IWebSocketChannelCollection
         return channels.TryAdd(channelToAdd.Id, channelToAdd);
     }
 
+    /// <inheritdoc cref="IWebSocketChannelCollection.Channels"/>
+    public ConcurrentDictionary<Guid, IWebSocketChannel<IChannelWriter>> Channels => channels;
+
     /// <inheritdoc cref="IWebSocketChannelCollection.Get(Guid)"/>
     public IWebSocketChannel<IChannelWriter> Get(Guid id)
     {

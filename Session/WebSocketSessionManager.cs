@@ -17,7 +17,6 @@ public class WebSocketSessionManager
 {
     private readonly ConcurrentDictionary<Guid, WebSocketSession> webSocketSessions = new();
     private readonly WebSocketChannelCollection webSocketChannels = new();
-    private CommProcessor commProcessor;
 
     /// <inheritdoc cref="IWebSocketSessionManager.StartSession"/>
     public void StartSession()
@@ -25,10 +24,13 @@ public class WebSocketSessionManager
         WebSocketListener webSocketListener = new();
         webSocketListener.OnWebSocketSessionOpen += WebSocketSessionOpen;
         webSocketListener.Start();
-
-        commProcessor = new CommProcessor(webSocketSessions, webSocketChannels);
     }
 
+    /// <summary>
+    /// Open handler
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void WebSocketSessionOpen(object sender, EventArgs e)
     {
         OnWebSocketSessionOpenEventArgs onWebSocketSessionOpenEventArgs = (OnWebSocketSessionOpenEventArgs)e;
@@ -42,21 +44,59 @@ public class WebSocketSessionManager
 
         webSocketSessions.TryAdd(webSocketSession.Id, webSocketSession);
 
-        Console.WriteLine($"Session opened, sessionId: {webSocketSession.Id}, sessionName: {webSocketSession.Name}");
+        AssociateWithChannel(webSocketSession);
 
+        Console.WriteLine($"Session opened, sessionId: {webSocketSession.Id}, sessionName: {webSocketSession.Name}");
+        CommProcessor commProcessor = new(webSocketSessions, webSocketChannels);
         commProcessor.BroadcastSession(webSocketSession.Id);
     }
 
+    /// <summary>
+    /// Associate the session with the channel if previously subscribed
+    /// </summary>
+    /// <param name="webSocketSession"></param>
+    private void AssociateWithChannel(WebSocketSession webSocketSession)
+    {
+        foreach (KeyValuePair<Guid, IWebSocketChannel<IChannelWriter>> channel in webSocketChannels.Channels)
+        {
+            if(channel.Value.Name.Contains(webSocketSession.Name))
+            {
+                bool isSubscribed = channel.Value.Subscribe(webSocketSession);
+                if (isSubscribed)
+                {
+                    CommProcessor commProcessor = new(webSocketSessions, webSocketChannels);
+                    commProcessor.BroadcastChannel(channel.Value as WebSocketChannel<IChannelWriter>);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ping handler
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void WebSocketSessionPing(object sender, EventArgs e)
     {
     }
 
+    /// <summary>
+    /// Message handler
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void WebSocketSessionMessage(object sender, EventArgs e)
     {
         OnTransmissionArgs onTransmissionArgs = (OnTransmissionArgs)e;
+        CommProcessor commProcessor = new(webSocketSessions, webSocketChannels);
         commProcessor.ProcessMessage(onTransmissionArgs);
     }
 
+    /// <summary>
+    /// Close handler
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void WebSocketSessionClose(object sender, EventArgs e)
     {
         OnWebSocketSessionCloseEventArgs onWebSocketSessionCloseEventArgs = (OnWebSocketSessionCloseEventArgs)e;

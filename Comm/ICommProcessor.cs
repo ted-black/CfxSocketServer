@@ -1,4 +1,5 @@
-﻿using CfxSocketServer.Comm.Server;
+﻿using CfxSocketServer.Channel;
+using CfxSocketServer.Comm.Server;
 
 namespace CfxSocketServer.Comm;
 
@@ -15,4 +16,10 @@ public interface ICommProcessor
     /// </summary>
     /// <param name="onTransmissionArgs"></param>
     void ProcessMessage(OnTransmissionArgs onTransmissionArgs);
+
+    /// <summary>
+    /// Broadcast channels
+    /// </summary>
+    /// <param name="channel"></param>
+    void BroadcastChannel(WebSocketChannel<IChannelWriter> channel);
 }

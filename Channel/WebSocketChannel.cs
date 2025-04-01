@@ -89,7 +89,21 @@ public class WebSocketChannel<T>() : IWebSocketChannel<T> where T : IChannelWrit
     public bool Subscribe(T subscriber)
     {
         subscriber.ChannelId = Id;
-        return Subscribers.TryAdd(subscriber.Id, subscriber);
+
+        T channelSubscriber = Subscribers.FirstOrDefault(Subscribers => Subscribers.Value.Name == subscriber.Name).Value;
+
+        if (channelSubscriber is null)
+        {
+            return Subscribers.TryAdd(subscriber.Id, subscriber);
+        }
+
+        if (!channelSubscriber.IsListening)
+        {
+            Subscribers.TryRemove(channelSubscriber.Id, out _);
+            return Subscribers.TryAdd(subscriber.Id, subscriber);
+        }
+
+        return false;
     }
 
     /// <inheritdoc cref="IWebSocketChannel{T}.UnSubscribe(T)"/>

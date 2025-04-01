@@ -46,6 +46,7 @@ public class CommProcessor(ConcurrentDictionary<Guid, WebSocketSession> webSocke
         string messageString = ASCIIEncoding.UTF8.GetString(onTransmissionArgs.Transmission.Payload.ToArray());
 
         Message message = JsonConvert.DeserializeObject<Message>(messageString);
+        message.SessionId = onTransmissionArgs.WebSocketSessionId;
 
         switch (message.Type)
         {
@@ -55,6 +56,28 @@ public class CommProcessor(ConcurrentDictionary<Guid, WebSocketSession> webSocke
             case MessageType.Content:
                 ProcessContent(message);
                 break;
+        }
+    }
+
+    /// <inheritdoc cref="ICommProcessor.BroadcastChannel(WebSocketChannel{IChannelWriter})"/>
+    public void BroadcastChannel(WebSocketChannel<IChannelWriter> channel)
+    {
+        List<WebSocketChannel<IChannelWriter>> channels = [];
+        channels.Add(channel);
+        string content = JsonConvert.SerializeObject(channels, jsonSerializerSettings);
+
+        foreach (IWebSocketSession webSocketSession in channel.Subscribers.Values.Cast<IWebSocketSession>())
+        {
+            webSocketSession.ChannelId = channel.Id;
+            Message message = new()
+            {
+                Command = Command.ListChannels,
+                Type = MessageType.Command,
+                Content = content,
+                SessionId = webSocketSession.Id
+            };
+
+            webSocketSession.WriteTextAsync(JsonConvert.SerializeObject(message, jsonSerializerSettings));
         }
     }
 
@@ -113,32 +136,7 @@ public class CommProcessor(ConcurrentDictionary<Guid, WebSocketSession> webSocke
 
         if (channelAdded)
         {
-            BroadcastChannels(channel);
-        }
-    }
-
-    /// <summary>
-    /// Broadcast channels to appropriate subscribers.
-    /// </summary>
-    /// <param name="channel"></param>
-    private void BroadcastChannels(WebSocketChannel<IChannelWriter> channel)
-    {
-        List<WebSocketChannel<IChannelWriter>> channels = [];
-        channels.Add(channel);
-        string content = JsonConvert.SerializeObject(channels, jsonSerializerSettings);
-
-        foreach (IWebSocketSession webSocketSession in channel.Subscribers.Values.Cast<IWebSocketSession>())
-        {
-            webSocketSession.ChannelId = channel.Id;
-            Message message = new()
-            {
-                Command = Command.ListChannels,
-                Type = MessageType.Command,
-                Content = content,
-                SessionId = webSocketSession.Id
-            };
-
-            webSocketSession.WriteTextAsync(JsonConvert.SerializeObject(message, jsonSerializerSettings));
+            BroadcastChannel(channel);
         }
     }
 }

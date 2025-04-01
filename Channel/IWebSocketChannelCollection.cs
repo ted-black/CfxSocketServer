@@ -1,4 +1,6 @@
-﻿namespace CfxSocketServer.Channel;
+﻿using System.Collections.Concurrent;
+
+namespace CfxSocketServer.Channel;
 
 public interface IWebSocketChannelCollection
 {
@@ -7,6 +9,11 @@ public interface IWebSocketChannelCollection
     /// </summary>
     /// <returns></returns>
     IWebSocketChannel<IChannelWriter> Get(Guid id);
+
+    /// <summary>
+    /// Channels
+    /// </summary>
+    ConcurrentDictionary<Guid, IWebSocketChannel<IChannelWriter>> Channels { get; }
 
     /// <summary>
     /// Add a webSocket channel
