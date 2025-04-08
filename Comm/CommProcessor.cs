@@ -116,7 +116,7 @@ public class CommProcessor(ConcurrentDictionary<Guid, WebSocketSession> webSocke
     }
 
     /// <summary>
-    /// Create the channel if is does NOT exist and broadcast if succesful
+    /// Create the channel if it does NOT exist and broadcast if succesful
     /// </summary>
     /// <param name="sessions"></param>
     private void CreateChannel(List<SessionInfo> sessions)

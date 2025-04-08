@@ -19,7 +19,7 @@ public class WebSocketSessionManager
     private readonly WebSocketChannelCollection webSocketChannels = new();
 
     /// <inheritdoc cref="IWebSocketSessionManager.StartSession"/>
-    public void StartSession()
+    public void StartSessionListener()
     {
         WebSocketListener webSocketListener = new();
         webSocketListener.OnWebSocketSessionOpen += WebSocketSessionOpen;
